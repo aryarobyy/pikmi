@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  USER
+  SELLER
+  ADMIN
+}
+
+enum PickupStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELED
+}
+
+enum UserFoodAction {
+  VIEW
+  PICKUP
+  FAVORITE
+  RATE
+}
+
+enum NotificationType {
+  FOOD_EXPIRING
+  NEW_DISCOUNT
+  PICKUP_REMINDER
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  imgUrl    String?  @map("img_url")
+  name      String
+  email     String   @unique
+  password  String   @default("")
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  stores              Store[]
+  pickupOrders        PickupOrder[]
+  userRecommendations UserRecommendation[]
+  userFoodHistories   UserFoodHistory[]
+  favoriteStores      FavoriteStore[]
+  favoriteFoods       FavoriteFood[]
+  reviews             Review[]
+  notifications       Notification[]
+  activityLogs        ActivityLog[]
+}
+
+model Store {
+  id          Int      @id @default(autoincrement())
+  ownerId     Int      @map("owner_id")
+  name        String
+  title       String
+  subtitle    String
+  description String
+  latitude    String
+  longitude   String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner               User                 @relation(fields: [ownerId], references: [id])
+  foods               Food[]
+  pickupOrders        PickupOrder[]
+  userRecommendations UserRecommendation[]
+  userFoodHistories   UserFoodHistory[]
+  favoriteStores      FavoriteStore[]
+  reviews             Review[]
+}
+
+model Food {
+  id             Int      @id @default(autoincrement())
+  storeId        Int      @map("store_id")
+  name           String
+  description    String
+  originalPrice  Int      @map("original_price")
+  rescuePrice    Int      @map("rescue_price")
+  stock          Int
+  expiredAt      DateTime @map("expired_at")
+  availableFrom  DateTime @map("available_from")
+  availableUntil DateTime @map("available_until")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  store               Store                @relation(fields: [storeId], references: [id])
+  pickupOrderItems    PickupOrderItem[]
+  userRecommendations UserRecommendation[]
+  userFoodHistories   UserFoodHistory[]
+  favoriteFoods       FavoriteFood[]
+  reviews             Review[]
+}
+
+model PickupOrder {
+  id         Int          @id @default(autoincrement())
+  userId     Int          @map("user_id")
+  storeId    Int          @map("store_id")
+  status     PickupStatus
+  pickupTime DateTime     @map("pickup_time")
+  totalPrice Int          @map("total_price")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  user             User              @relation(fields: [userId], references: [id])
+  store            Store             @relation(fields: [storeId], references: [id])
+  pickupOrderItems PickupOrderItem[]
+}
+
+model UserRecommendation {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  foodId      Int      @map("food_id")
+  storeId     Int      @map("store_id")
+  score       Float
+  reason      String
+  generatedAt DateTime @map("generated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  food  Food  @relation(fields: [foodId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+}
+
+model PickupOrderItem {
+  id            Int @id @default(autoincrement())
+  pickupOrderId Int @map("pickup_order_id")
+  foodId        Int @map("food_id")
+  quantity      Int
+  price         Int
+
+  pickupOrder PickupOrder @relation(fields: [pickupOrderId], references: [id])
+  food        Food        @relation(fields: [foodId], references: [id])
+}
+
+model UserFoodHistory {
+  id        Int            @id @default(autoincrement())
+  userId    Int            @map("user_id")
+  foodId    Int            @map("food_id")
+  storeId   Int            @map("store_id")
+  action    UserFoodAction
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  food  Food  @relation(fields: [foodId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+}
+
+model FavoriteStore {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  storeId   Int      @map("store_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+}
+
+model FavoriteFood {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  foodId    Int      @map("food_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  food Food @relation(fields: [foodId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  storeId   Int      @map("store_id")
+  foodId    Int      @map("food_id")
+  rating    Boolean
+  comment   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+  food  Food  @relation(fields: [foodId], references: [id])
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int              @map("user_id")
+  title     String
+  message   String           @db.Text
+  type      NotificationType
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  actor       Role
+  action      String
+  targetTable String   @map("target_table")
+  targetId    Int      @map("target_id")
+  data        Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+}
