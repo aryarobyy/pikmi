@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { getMenu } from '@/provider/menuService';
-import { Food } from '@/models/food';
+import { FoodModel } from '@/models/food';
 
 export default function MenuPage() {
-    const [menus, setMenus] = useState<Food[]>([]);
+    const [menus, setMenus] = useState<FoodModel[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
 

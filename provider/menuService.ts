@@ -1,7 +1,7 @@
-import api from '@/lib/axios';
-import { Food } from '@/models/food';
+import apiHandler from '@/lib/axios';
+import { FoodModel } from '@/models/food';
 
 export const getMenu = () => {
-    return api.get<Food[]>('/menu');
+    return apiHandler.get<FoodModel[]>('/menu');
 };
 
