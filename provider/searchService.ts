@@ -3,11 +3,11 @@ import { FoodModel } from '@/models/food';
 import { Store } from '@/models/store';
 
 const SEARCH = '/search';
-const MENU = '/menu';
+const MENU = '/app/api/menu';
 
 // Cari makanan berdasarkan keyword
 export const searchFood = async (keyword: string) => {
-    const res = await apiHandler.get<FoodModel[]>(`${MENU}/search`, {
+    const res = await apiHandler.get<FoodModel[]>(MENU, {
         params: { q: keyword },
     });
     return res.data;
